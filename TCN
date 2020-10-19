@@ -1,0 +1,117 @@
+import numpy as np
+import matplotlib.pyplot as plt
+import pandas as pd
+import requests
+from datetime import datetime
+import seaborn as sns
+
+!sudo apt-get install msttcorefonts -qq
+import matplotlib as mpl
+mpl.rcParams['figure.dpi'] = 500
+
+import matplotlib
+import matplotlib.font_manager as fm
+
+link_blue="https://mercados.ambito.com/dolar/informal/historico-general/01-01-2011/{}".format(datetime.now().strftime('%d-%m-%Y'))
+session=requests.session()
+blue=pd.DataFrame(session.get(link_blue).json()[1:]) 
+
+blue.columns=['fecha','compra','venta']
+blue=blue.drop_duplicates(subset="fecha")
+blue['fecha']=pd.to_datetime(blue.fecha,format='%d-%m-%Y')
+blue['compra']=blue['compra'].apply(lambda x: x.replace(',', '.'))
+blue['compra']=blue['compra'].apply(lambda row: float(row))
+blue['venta']=blue['venta'].apply(lambda x: x.replace(',', '.'))
+blue['venta']=blue['venta'].apply(lambda row: float(row))
+blue["Blue"]=(blue['venta']+blue['compra'])/2
+
+link_mep="https://mercados.ambito.com//dolarrava/mep/historico-general/20-03-2020/{}".format(datetime.now().strftime('%d-%m-%Y'))
+session=requests.session()
+mep=pd.DataFrame(session.get(link_mep).json()[1:]) 
+
+mep.columns=['fecha','MEP']
+mep=mep.drop_duplicates(subset="fecha")
+mep['fecha']=pd.to_datetime(mep.fecha,format='%d-%m-%Y')
+mep['MEP']=mep['MEP'].apply(lambda x: x.replace(',', '.'))
+mep['MEP']=mep['MEP'].apply(lambda row: float(row))
+
+
+link_ccl="https://mercados.ambito.com//dolarrava/cl/historico-general/02-01-2013/{}".format(datetime.now().strftime('%d-%m-%Y'))
+session=requests.session()
+ccl=pd.DataFrame(session.get(link_ccl).json()[1:]) 
+
+ccl.columns=['fecha','CCL']
+ccl=ccl.drop_duplicates(subset="fecha")
+ccl['fecha']=pd.to_datetime(ccl.fecha,format='%d-%m-%Y')
+ccl['CCL']=ccl['CCL'].apply(lambda x: x.replace(',', '.'))
+ccl['CCL']=ccl['CCL'].apply(lambda row: float(row))
+
+
+
+link_of="https://mercados.ambito.com//dolar/oficial/historico-general/04-01-2010/{}".format(datetime.now().strftime('%d-%m-%Y'))
+session=requests.session()
+TCN=pd.DataFrame(session.get(link_of).json()[1:]) 
+
+TCN.columns=['fecha','compra','venta']
+
+TCN=TCN.drop_duplicates(subset="fecha")
+TCN['fecha']=pd.to_datetime(TCN.fecha,format='%d-%m-%Y')
+TCN['compra']=TCN['compra'].apply(lambda x: x.replace(',', '.'))
+TCN['compra']=TCN['compra'].apply(lambda row: float(row))
+TCN['venta']=TCN['venta'].apply(lambda x: x.replace(',', '.'))
+TCN['venta']=TCN['venta'].apply(lambda row: float(row))
+TCN["TCN"]=(TCN['venta']+TCN['compra'])/2
+
+link_sol="https://mercados.ambito.com//dolarturista/historico-general/23-12-2019/{}".format(datetime.now().strftime('%d-%m-%Y'))
+session=requests.session()
+sol=pd.DataFrame(session.get(link_sol).json()[1:]) 
+sol.columns=['fecha','Solidario']
+sol=sol.drop_duplicates(subset="fecha")
+sol['fecha']=pd.to_datetime(sol.fecha,format='%d-%m-%Y')
+sol['Solidario']=sol['Solidario'].apply(lambda x: x.replace(',', '.'))
+sol['Solidario']=sol['Solidario'].apply(lambda row: float(row))
+dolares=TCN.merge(blue[["fecha","Blue"]],on='fecha',how='left')
+dolares=dolares.merge(mep,on='fecha',how='left')
+dolares=dolares.merge(ccl,on='fecha',how='left')
+dolares=dolares.merge(sol,on='fecha',how='left')
+dolares=dolares.set_index("fecha")
+brechas=pd.DataFrame()
+brechas["Brecha CCL"]=dolares["CCL"]/dolares["TCN"]-1
+brechas["Brecha MEP"]=dolares["MEP"]/dolares["TCN"]-1
+brechas["Brecha Blue"]=dolares["Blue"]/dolares["TCN"]-1
+
+brechas["Brecha CCL(S)"]=dolares["CCL"]/dolares["Solidario"]-1
+brechas["Brecha MEP(S)"]=dolares["MEP"]/dolares["Solidario"]-1
+brechas["Brecha Blue(S)"]=dolares["Blue"]/dolares["Solidario"]-1
+brechas=brechas*100
+
+
+
+
+mpl.rcParams['figure.dpi'] = 500
+fig, ax1 = plt.subplots(figsize=(8, 4))
+brechas_2020=brechas.loc["2020"].dropna(subset=["Brecha CCL"])
+brechas_2020["Brecha CCL"].plot(color="red")
+brechas_2020["Brecha CCL(S)"].plot(color="red", ls="--")
+
+brechas_2020["Brecha MEP"].plot(color="blue")
+brechas_2020["Brecha MEP(S)"].plot(color="blue", ls="--")
+
+
+brechas_2020["Brecha Blue"].plot(color="green" )
+brechas_2020["Brecha Blue(S)"].plot(color="green" , ls="--")
+plt.autoscale(enable=True, axis='x', tight=True)  
+legend=plt.legend(loc='upper left',  ncol=3,fontsize=8, frameon=False)
+
+plt.setp(legend.get_texts())
+plt.title("Brechas Cambiarias")
+plt.tick_params(axis='x')
+plt.tick_params(axis='y')
+plt.axhline(y=0, linestyle='--', color='grey')
+plt.ylabel('%',)
+ax1.set_facecolor('white')
+
+plt.annotate('Fuente: BCRA y Ámbito.\n(S): Sobre el dólar solidario.' , (0,0), (-20,-50), fontsize=9, 
+             xycoords='axes fraction', textcoords='offset points', va='top')
+plt.show()
+
