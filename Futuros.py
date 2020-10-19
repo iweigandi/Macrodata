@@ -5,11 +5,6 @@ import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt  
 from datetime import datetime
-from google.colab import auth
-auth.authenticate_user()
-from oauth2client.client import GoogleCredentials
-import gspread
-from gspread_dataframe import set_with_dataframe
 
 dates = ["2014-01-01", "2020-08-01"]
 start, end = [datetime.strptime(_, "%Y-%m-%d") for _ in dates]
