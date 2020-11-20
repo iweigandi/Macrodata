@@ -144,20 +144,25 @@ MULC=MULC.set_index("Fecha")
 saldo_com=ICA.merge(MULC, left_index=True, right_index=True, how="left")
 saldo_com.index=pd.to_datetime(saldo_com.index, format="%Y-%b")
 
-chart=saldo_com[["Saldo ICA","Saldo MULC"]].loc["2020"].cumsum()
-mpl.rcParams['figure.dpi'] = 300
 
-fig = plt.figure(figsize=(8, 4)) 
-ax = fig.add_subplot(111) 
-ax.plot(chart.index ,chart, marker="o", alpha=0.8,linewidth=3)
+
+ax=base_mon.loc["2020":][["Adelantos Transitorios","Transferencia de Utilidades",'Pases', 'LELIQ']].cumsum().plot(figsize=(4,5))
+
+plt.tick_params(axis='y')
 plt.gca().set_yticklabels(['{:,.0f}'.format(x).replace(',','.') for x in plt.gca().get_yticks()]) 
 
-ax.xaxis.set_major_formatter(mdates.DateFormatter("%m-%Y"))
-
+#ax.set_xticklabels(labels)
 
 plt.xlabel("")
-plt.title("Saldo Comercial Devengado y Caja Acumulado 2020",color='#3D3D3E',**{'fontname':'Calibri'})
-legend= plt.legend(["Saldo (INDEC)","Saldo (BCRA)"],loc='upper left',frameon=False)  
-plt.xticks(rotation=90)
+plt.title("Financiamiento del BCRA al Tesoro y Esterilización\nAcumulado 2020",color='#3D3D3E',**{'fontname':'Rubik'})
+legend=plt.legend(frameon=False)
+plt.setp(legend.get_texts(), color='#3D3D3E', fontsize=7)
+plt.tick_params(axis='x', colors="#3D3D3E")
+plt.tick_params(axis='y', colors="#3D3D3E")
+plt.ylabel('Millones de pesos',color='#3D3D3E',**{'fontname':'Rubik'})
+plt.xticks(rotation=45)
 
+plt.annotate('Fuente: BCRA' , (0,0), (-20,-50), fontsize=9, 
+             xycoords='axes fraction', textcoords='offset points', va='top',color='#3D3D3E',**{'fontname':'Rubik'})
 
+plt.show()
