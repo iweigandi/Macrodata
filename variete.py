@@ -115,3 +115,49 @@ m2=m2.merge(uva,left_index=True, right_index=True, how="inner")
 m2["M2 real"]=(m2["M2"]/m2["UVA"])*m2[m2.UVA==m2.UVA[-1]]["UVA"][0]
 m2["Base Monetaria real"]=(m2["Base Monetaria"]/m2["UVA"])*m2[m2.UVA==m2.UVA[-1]]["UVA"][0]
 
+
+start= datetime.strptime("1990-01-01", "%Y-%m-%d")
+end=datetime.now()
+fechas=pd.date_range(start,end, freq='MS').strftime("%Y-%b").tolist()
+link1="https://www.indec.gob.ar/ftp/cuadros/economia/balanmensual.xls"
+link2="http://www.bcra.gov.ar/Pdfs/PublicacionesEstadisticas/Anexo.xls"
+
+
+ICA= pd.read_excel(link1,skiprows=6)
+ICA=ICA.iloc[:,[1,2,7]].dropna()
+ICA.columns=["Mes", "Exportaciones", "Importaciones"]
+ICA["Fecha"]=fechas[:len(ICA)]
+ICA=ICA.set_index("Fecha")
+ICA["Saldo ICA"]=ICA["Exportaciones"]-ICA["Importaciones"]
+ICA12=ICA.rolling(12).sum()
+
+
+link2="http://www.bcra.gov.ar/Pdfs/PublicacionesEstadisticas/Anexo.xls"
+MULC= pd.read_excel(link2,"Balance Cambiario Mensual" ,skiprows=25)
+MULC=MULC.iloc[:,[5,6]].dropna()
+MULC.columns=["Exportaciones (M)","Importaciones (M)"]
+MULC["Saldo MULC"]=MULC["Exportaciones (M)"]-MULC["Importaciones (M)"]
+MULC["Fecha"]=fechas[156:(156+len(MULC))]
+MULC=MULC.set_index("Fecha")
+
+
+saldo_com=ICA.merge(MULC, left_index=True, right_index=True, how="left")
+saldo_com.index=pd.to_datetime(saldo_com.index, format="%Y-%b")
+
+chart=saldo_com[["Saldo ICA","Saldo MULC"]].loc["2020"].cumsum()
+mpl.rcParams['figure.dpi'] = 300
+
+fig = plt.figure(figsize=(8, 4)) 
+ax = fig.add_subplot(111) 
+ax.plot(chart.index ,chart, marker="o", alpha=0.8,linewidth=3)
+plt.gca().set_yticklabels(['{:,.0f}'.format(x).replace(',','.') for x in plt.gca().get_yticks()]) 
+
+ax.xaxis.set_major_formatter(mdates.DateFormatter("%m-%Y"))
+
+
+plt.xlabel("")
+plt.title("Saldo Comercial Devengado y Caja Acumulado 2020",color='#3D3D3E',**{'fontname':'Calibri'})
+legend= plt.legend(["Saldo (INDEC)","Saldo (BCRA)"],loc='upper left',frameon=False)  
+plt.xticks(rotation=90)
+
+
