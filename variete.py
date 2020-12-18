@@ -166,3 +166,51 @@ plt.annotate('Fuente: BCRA' , (0,0), (-20,-50), fontsize=9,
              xycoords='axes fraction', textcoords='offset points', va='top',color='#3D3D3E',**{'fontname':'Rubik'})
 
 plt.show()
+
+
+
+
+
+
+
+
+#--
+
+
+rrii = pd.read_excel(link,'RESERVAS',skiprows=8,index_col=0)
+rrii=rrii.loc[:"Mes"].iloc[:-1]
+total =  rrii.isnull().sum().sort_values(ascending=False)
+porcentaje = (rrii.isnull().sum()/rrii.isnull().count()).sort_values(ascending=False)
+data_faltante = pd.concat([total, porcentaje], axis=1, keys=['Total', 'Porcentaje'])
+rrii=rrii.drop((data_faltante[data_faltante['Porcentaje'] > 0.9]).index,1)
+
+rrii=fechas_bcra.merge(rrii,  how="inner",left_index=True, right_index=True)
+rrii.columns=['RRII', 'Oro, Divisas, Colocaciones a Plazo y Otros', 'Divisas - Pase Pasivo en USD con el Exterior', 'Var. RRII', 'Intervenciones', 'OOII', 'Otros Sec. Pub.', 'Encajes', 'Otros', 'DEG', 'TCN']
+rrii.index = pd.to_datetime(rrii.index)
+
+
+
+rrii.columns=['RRII', 'Oro, Divisas, Colocaciones a Plazo y Otros', 'Divisas - Pase Pasivo en USD con el Exterior', 'Var. RRII', 'Intervenciones', 'OOII', 'Otros Sec. Pub.', 'Encajes', 'Otros', 'DEG', 'TCN']
+rrii2=rrii[['Intervenciones', 'OOII', 'Otros Sec. Pub.', 'Encajes', 'Otros']].resample("M").sum().loc["2020-01":]
+rrii2[['Var. RRII']]=rrii[['Var. RRII']].resample("M").sum().loc["2020-01":]
+labels = [ i.strftime("%m-%Y") for i in rrii2.index]
+
+
+ax1=rrii2.loc[:, rrii2.columns != 'Var. RRII'].plot(kind="bar", stacked=True,edgecolor = "none",figsize=(6,5))
+ax1.plot(ax1.get_xticks(),rrii2[['Var. RRII']],color="black" ,label="Var. RRII" )
+
+legend=plt.legend(loc="upper right",frameon=False,ncol=2)
+plt.xlabel("")
+
+ax1.set_xticklabels(labels)
+plt.title("Variación semanal de RRII " , color='#3D3D3E',**{'fontname':'Rubik'})
+plt.setp(legend.get_texts(), color='#3D3D3E', fontsize=6)
+plt.tick_params(axis='x', colors="#3D3D3E")
+plt.tick_params(axis='y', colors="#3D3D3E")
+plt.ylabel('Millones de USD',color='#3D3D3E',**{'fontname':'Rubik'})
+
+plt.axhline(y=0,color="grey", linewidth=0.5 )
+plt.gca().set_yticklabels(['{:,.0f}'.format(x).replace(',','.') for x in plt.gca().get_yticks()]) 
+
+plt.annotate('Fuente: BCRA' , (0,0), (-20,-65), fontsize=9, 
+             xycoords='axes fraction', textcoords='offset points', va='top',color='#3D3D3E',**{'fontname':'Rubik'})
