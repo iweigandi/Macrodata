@@ -245,3 +245,11 @@ plt.annotate('+ Apreciación' , (0,0), (125,260), fontsize=9,
              xycoords='axes fraction', textcoords='offset points', va='top',color='#3D3D3E',**{'fontname':'Rubik'})
 plt.annotate('+ Depreciación' , (0,0), (125,30), fontsize=9, 
              xycoords='axes fraction', textcoords='offset points', va='top',color='#3D3D3E',**{'fontname':'Rubik'})
+
+
+curr=["JPY/USD","EUR/USD","SAR/USD","ARS/USD","AUD/USD","EUR/USD","BRL/USD","CAD/USD","CNY/USD","DKK/USD","AED/USD","GBP/USD","HKD/USD","MYR/USD","MXN/USD","NOK/USD","NZD/USD","PEN/USD","PLN/USD","RUB/USD","SGD/USD","ZAR/USD","SEK/USD","CHF/USD","THB/USD","TWD/USD","TRY/USD"]
+symbols=[]
+for i in curr: 
+    r=investpy.get_currency_cross_historical_data(currency_cross=i, from_date='01/01/1992', to_date='31/12/2018')
+    r['curr'] = i
+    symbols.append(r)
