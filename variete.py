@@ -218,22 +218,30 @@ plt.annotate('Fuente: BCRA' , (0,0), (-20,-65), fontsize=9,
 
 
 ###############
-fig, ax = plt.subplots(1, figsize=(8, 4))
 
-cmap2 = plt.get_cmap('RdYlGn',10)
-cmap2.set_under('gray')
-cmap2.set_over('gray')
-vmin, vmax= -8,8
-año=2025
-mapa_cuco[mapa_cuco["Año"]==año].plot(column='Valor', cmap=cmap2, linewidth=0.8, ax=ax, edgecolor='0.8',vmin=vmin, vmax=vmax)
-#plt.title("Cuenta Corriente sobre el PBI {}".format(año),color='#3D3D3E',**{'fontname':'Calibri'})
-plt.axis('off')
-plt.annotate('Fuente: FMI-World Economic Outlook',xy=(0.1, .17),  xycoords='figure fraction', horizontalalignment='left', verticalalignment='top', fontsize=12, color='#3D3D3E',**{'fontname':'Calibri'})
-sm = plt.cm.ScalarMappable(cmap=cmap2,norm=plt.Normalize(vmin=vmin, vmax=vmax))
-sm._A = []
-divider = make_axes_locatable(ax)
-cax = divider.append_axes("right", size="3%", pad=0.05)
+link_tcr="https://www.bis.org/statistics/eer/broad.xlsx"
+tcrs=pd.read_excel(link_tcr,'Real',skiprows=3,index_col=0)
+tcrs=tcrs.iloc[1:,:]
 
-cbar = fig.colorbar(sm, cax=cax,extend='both')
-cbar.ax.tick_params(labelsize=10) 
-plt.show()
+tcrs2=tcrs[["Argentina", "Brazil", "Chile", "Colombia", "Peru" ]].loc["2020":].copy()
+p=100/tcrs2.iloc[0,:]
+tcrs2.iloc[:,:]*=p
+tcrs2.plot(figsize=(5,5))
+
+legend=plt.legend(frameon=False)
+plt.xlabel("")
+plt.title("Tipo de cambio real multilateral" , color='#3D3D3E',**{'fontname':'Rubik'})
+plt.setp(legend.get_texts(), color='#3D3D3E', fontsize=7)
+plt.tick_params(axis='x', colors="#3D3D3E")
+plt.tick_params(axis='y', colors="#3D3D3E")
+plt.ylabel('Base 100=enero 2017',color='#3D3D3E',**{'fontname':'Rubik'})
+plt.xticks(rotation=45)
+
+plt.annotate('Fuente: BIS' , (0,0), (-20,-50), fontsize=9, 
+             xycoords='axes fraction', textcoords='offset points', va='top',color='#3D3D3E',**{'fontname':'Rubik'})
+
+
+plt.annotate('+ Apreciación' , (0,0), (125,260), fontsize=9, 
+             xycoords='axes fraction', textcoords='offset points', va='top',color='#3D3D3E',**{'fontname':'Rubik'})
+plt.annotate('+ Depreciación' , (0,0), (125,30), fontsize=9, 
+             xycoords='axes fraction', textcoords='offset points', va='top',color='#3D3D3E',**{'fontname':'Rubik'})
