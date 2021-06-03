@@ -253,3 +253,42 @@ for i in curr:
     r=investpy.get_currency_cross_historical_data(currency_cross=i, from_date='01/01/1992', to_date='31/12/2018')
     r['curr'] = i
     symbols.append(r)
+
+    
+   
+  ------------
+  base_mon = pd.read_excel(link,'BASE MONETARIA',skiprows=8,index_col=0)
+base_mon=base_mon.loc[:"Mes"].iloc[:-1]
+total = base_mon.isnull().sum().sort_values(ascending=False)
+porcentaje = (base_mon.isnull().sum()/base_mon.isnull().count()).sort_values(ascending=False)
+data_faltante = pd.concat([total, porcentaje], axis=1, keys=['Total', 'Porcentaje'])
+base_mon=base_mon.drop((data_faltante[data_faltante['Porcentaje'] > 0.9]).index,1)
+start_bcra= datetime.strptime("2003-01-02", "%Y-%m-%d")
+end_bcra=datetime.now()
+fechas_bcra=pd.DataFrame(pd.date_range(start_bcra,end_bcra, freq='d'))
+fechas_bcra=fechas_bcra.set_index(0)
+base_mon=fechas_bcra.merge(base_mon,  how="inner",left_index=True, right_index=True)
+base_mon.columns=['Total Factores', 'Intervención cambiaria', 'Op. de divisas con el Tesoro', 'Adelantos Transitorios', 'Transferencia de Utilidades', 'Resto Tesoro', 'Pases', 'LELIQ', 'Redescuentos y Adelantos', 'Intereses', 'LEBAC y NOBAC', 'Rescate de Cuasimonedas', 'Otros', 'Var. Billetes y Monedas en Poder del Público', 'Var. Billetes y Monedas en Entidades', 'Var. Cheques Cancelatorios', 'Var. Cuenta Corriente en el BCRA', 'Var. Base Monetaria', 'Var. Cuasimonedas', 'Var. Base Monetaria + cuasimonedas', 'Billetes y Monedas en Poder del Público', 'Billetes y Monedas en Entidades', 'Cheques Cancelatorios', 'Cuenta Corriente en el BCRA', 'Base Monetaria', 'Cuasimonedas', 'Base Monetaria + cuasimonedas']
+base_mon.index = pd.to_datetime(base_mon.index)
+
+
+ax=base_mon["2020":].pivot_table(values="Asistencia al Tesoro real", columns="Año", index="Mes",    aggfunc='sum').cumsum().plot(kind="bar",figsize=(4,3),edgecolor = "none")
+
+plt.tick_params(axis='y')
+plt.gca().set_yticklabels(['{:,.0f}'.format(x).replace(',','.') for x in plt.gca().get_yticks()]) 
+
+#ax.set_xticklabels(labels)
+
+plt.xlabel("Mes")
+plt.title("Financiamiento del BCRA al Tesoro \nAcumulado ",color='#3D3D3E',**{'fontname':'Rubik'})
+legend=plt.legend(frameon=False)
+plt.setp(legend.get_texts(), color='#3D3D3E', fontsize=7)
+plt.tick_params(axis='x', colors="#3D3D3E")
+plt.tick_params(axis='y', colors="#3D3D3E")
+plt.ylabel('Millones de pesos constantes',color='#3D3D3E',**{'fontname':'Rubik'})
+plt.xticks(rotation=45)
+
+plt.annotate('Fuente: BCRA' , (0,0), (-20,-30), fontsize=9, 
+             xycoords='axes fraction', textcoords='offset points', va='top',color='#3D3D3E',**{'fontname':'Rubik'})
+
+plt.show()
