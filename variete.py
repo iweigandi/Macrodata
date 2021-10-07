@@ -292,3 +292,6 @@ plt.annotate('Fuente: BCRA' , (0,0), (-20,-30), fontsize=9,
              xycoords='axes fraction', textcoords='offset points', va='top',color='#3D3D3E',**{'fontname':'Rubik'})
 
 plt.show()
+
+
+https://ma.moodys.com/2021_09_23_Americas_MIS_REG_OilGasArgentina_Web_MIU15261_ThankYou.html
